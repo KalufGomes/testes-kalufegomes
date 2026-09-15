@@ -194,20 +194,65 @@ const KGTest = (() => {
           <p style="color:var(--text-dim);font-size:.9rem;max-width:24rem;">
             Suas respostas foram enviadas. A equipe de RH vai analisar o seu perfil em breve.
           </p>
-          <button class="kg-btn kg-btn-ghost" id="kg-download" style="margin-top:1.5rem;">Baixar relatório</button>
-          <p class="kg-status" id="kg-status"></p>
         </div>
       `));
-      document.getElementById("kg-download").addEventListener("click", () => {
-        downloadHTML(reportHtml, `relatorio-${config.testType}-${slugify(candidate.name)}.html`);
-      });
     }
 
     renderIntro();
   }
 
+  function buildRadarSVG(points) {
+    const n = points.length;
+    const maxLabelLen = Math.max(...points.map((p) => `${p.label} (100%)`.length));
+    const R = 130;
+    const textWidth = maxLabelLen * 6.4;
+    const W = Math.round(2 * (R + 20 + textWidth) + 20);
+    const H = W;
+    const cx = W / 2;
+    const cy = H / 2;
+    const angleFor = (i) => (Math.PI * 2 * i) / n - Math.PI / 2;
+    const rings = [20, 40, 60, 80, 100];
+
+    let svg = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+    rings.forEach((level) => {
+      const pts = points.map((_, i) => {
+        const a = angleFor(i);
+        const r = (R * level) / 100;
+        return `${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`;
+      }).join(" ");
+      svg += `<polygon points="${pts}" fill="none" stroke="#DCD5C2" stroke-width="1" />`;
+    });
+    points.forEach((p, i) => {
+      const a = angleFor(i);
+      const x2 = cx + R * Math.cos(a);
+      const y2 = cy + R * Math.sin(a);
+      svg += `<line x1="${cx}" y1="${cy}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#DCD5C2" stroke-width="1" />`;
+      const lx = cx + (R + 20) * Math.cos(a);
+      const ly = cy + (R + 20) * Math.sin(a);
+      const cosA = Math.cos(a);
+      const anchor = Math.abs(cosA) < 0.15 ? "middle" : cosA > 0 ? "start" : "end";
+      svg += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="10" font-family="Arial, sans-serif" fill="${p.color}" font-weight="600" text-anchor="${anchor}" dominant-baseline="middle">${p.label} (${p.pct}%)</text>`;
+    });
+    const dataPts = points.map((p, i) => {
+      const a = angleFor(i);
+      const r = (R * p.pct) / 100;
+      return `${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`;
+    }).join(" ");
+    svg += `<polygon points="${dataPts}" fill="#C8A46555" stroke="#8A7A5E" stroke-width="1.5" />`;
+    points.forEach((p, i) => {
+      const a = angleFor(i);
+      const r = (R * p.pct) / 100;
+      svg += `<circle cx="${(cx + r * Math.cos(a)).toFixed(1)}" cy="${(cy + r * Math.sin(a)).toFixed(1)}" r="3.5" fill="${p.color}" />`;
+    });
+    svg += `</svg>`;
+    return svg;
+  }
+
   function buildReportHTML(config, candidate, report) {
     const dimBlocks = config.buildReportSections(candidate).join("");
+    const radarHtml = config.buildRadarData
+      ? `<div style="text-align:center;margin-bottom:24px;">${buildRadarSVG(config.buildRadarData(candidate))}</div>`
+      : "";
     return `<!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="UTF-8" />
 <title>Relatório ${config.title} — ${candidate.name}</title>
@@ -230,7 +275,7 @@ const KGTest = (() => {
   @media print { body { padding: 0; } .print-hint { display: none; } }
 </style></head>
 <body>
-  <p class="print-hint">Para salvar como PDF: pressione <strong>Ctrl+P</strong> (Windows) ou <strong>Cmd+P</strong> (Mac) e escolha "Salvar como PDF".</p>
+  <p class="print-hint">Para salvar este relatório como PDF: com o e-mail aberto, pressione <strong>Ctrl+P</strong> (Windows) ou <strong>Cmd+P</strong> (Mac) e escolha "Salvar como PDF".</p>
   <div class="header">
     <img src="${config.logoDataUri}" alt="Kaluf & Gomes" />
     <p class="title">Relatório de ${config.title}</p>
@@ -239,6 +284,7 @@ const KGTest = (() => {
   <p class="company">${candidate.empresa || "Empresa não informada"}</p>
   <p class="name">${candidate.name}</p>
   <p class="submitted">Respondido em ${new Date(candidate.submittedAt).toLocaleString("pt-BR")}</p>
+  ${radarHtml}
   <p class="eyebrow" style="margin-top:24px;">Relatório do perfil</p>
   <div class="hr"></div>
   <p class="summary">${report.summary}</p>
