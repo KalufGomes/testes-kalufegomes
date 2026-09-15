@@ -108,7 +108,6 @@ const DISC_CONFIG = Object.assign({}, KG_CONFIG, {
   title: "Perfil Comportamental DISC",
   introText: "24 blocos rápidos. Em cada um, escolha a palavra que mais combina e a que menos combina com você. Não existe resposta certa — responda com o que é mais natural.",
   logoSrc: "../assets/logo.png",
-  logoDataUri: LOGO_DATA_URI,
   buildBlocks: buildDiscBlocks,
   scoreAnswers: scoreDisc,
   generateReport: generateDiscReport,

@@ -222,7 +222,6 @@ const ENEAGRAMA_CONFIG = Object.assign({}, KG_CONFIG, {
   title: "Eneagrama",
   introText: "12 blocos rápidos. Em cada um, escolha a afirmação que mais combina e a que menos combina com você. Não existe resposta certa — responda com o que é mais natural para você.",
   logoSrc: "../assets/logo.png",
-  logoDataUri: LOGO_DATA_URI,
   buildBlocks: buildEneagramaBlocks,
   scoreAnswers: scoreEneagrama,
   generateReport: generateEneagramaReport,

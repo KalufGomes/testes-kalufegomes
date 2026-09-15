@@ -5,4 +5,7 @@ const KG_CONFIG = {
   // Cole aqui o link de compartilhamento da sua planilha do Google, se quiser
   // que o botão "Ver planilha de resultados" abra ela diretamente:
   sheetUrl: "",
+  // Link público da logo no seu site publicado — usado no e-mail do
+  // relatório (e-mails não aceitam imagens "embutidas" em base64).
+  logoPublicUrl: "https://testes.kalufegomes.com.br/assets/logo.png",
 };

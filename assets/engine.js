@@ -277,7 +277,7 @@ const KGTest = (() => {
 <body>
   <p class="print-hint">Para salvar este relatório como PDF: com o e-mail aberto, pressione <strong>Ctrl+P</strong> (Windows) ou <strong>Cmd+P</strong> (Mac) e escolha "Salvar como PDF".</p>
   <div class="header">
-    <img src="${config.logoDataUri}" alt="Kaluf & Gomes" />
+    <img src="${config.logoPublicUrl}" alt="Kaluf & Gomes" />
     <p class="title">Relatório de ${config.title}</p>
     <p class="date">${new Date().toLocaleDateString("pt-BR")}</p>
   </div>

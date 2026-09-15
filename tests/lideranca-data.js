@@ -106,7 +106,6 @@ const LIDERANCA_CONFIG = Object.assign({}, KG_CONFIG, {
   introText: "12 situações do dia a dia de gestão. Em cada uma, marque a ação que você mais tomaria e a que menos tomaria. Não existe resposta certa — responda com o que é mais natural para você.",
   questionPrompt: "Qual ação você mais tomaria e qual menos tomaria?",
   logoSrc: "../assets/logo.png",
-  logoDataUri: LOGO_DATA_URI,
   buildBlocks: buildLiderancaBlocks,
   scoreAnswers: scoreLideranca,
   generateReport: generateLiderancaReport,
