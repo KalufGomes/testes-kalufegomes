@@ -201,58 +201,127 @@ const KGTest = (() => {
     renderIntro();
   }
 
-  function buildRadarSVG(points) {
-    const n = points.length;
-    const maxLabelLen = Math.max(...points.map((p) => `${p.label} (100%)`.length));
-    const R = 130;
-    const textWidth = maxLabelLen * 6.4;
-    const W = Math.round(2 * (R + 20 + textWidth) + 20);
-    const H = W;
-    const cx = W / 2;
-    const cy = H / 2;
-    const angleFor = (i) => (Math.PI * 2 * i) / n - Math.PI / 2;
-    const rings = [20, 40, 60, 80, 100];
+  function buildBarsHTML(points) {
+    return points.map((p) => `
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+          <span style="color:${p.color};font-weight:600;">${p.label}</span>
+          <span style="color:#6B6B6B;">${p.pct}%</span>
+        </div>
+        <div style="height:8px;border-radius:4px;background:#EDEAE0;overflow:hidden;">
+          <div style="width:${p.pct}%;height:100%;background:${p.color};"></div>
+        </div>
+      </div>`).join("");
+  }
 
-    let svg = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
-    rings.forEach((level) => {
-      const pts = points.map((_, i) => {
+  function buildRadarPNG(points) {
+    try {
+      const R = 130;
+      const n = points.length;
+      const angleFor = (i) => (Math.PI * 2 * i) / n - Math.PI / 2;
+
+      const measureCanvas = document.createElement("canvas");
+      const mctx = measureCanvas.getContext("2d");
+      mctx.font = "600 13px Arial, sans-serif";
+      let maxTextWidth = 0;
+      points.forEach((p) => {
+        const w = mctx.measureText(`${p.label} (${p.pct}%)`).width;
+        if (w > maxTextWidth) maxTextWidth = w;
+      });
+
+      const W = Math.round(2 * (R + 24 + maxTextWidth) + 20);
+      const H = W;
+      const cx = W / 2;
+      const cy = H / 2;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = W;
+      canvas.height = H;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(0, 0, W, H);
+
+      const rings = [20, 40, 60, 80, 100];
+      ctx.strokeStyle = "#DCD5C2";
+      ctx.lineWidth = 1;
+      rings.forEach((level) => {
+        ctx.beginPath();
+        points.forEach((_, i) => {
+          const a = angleFor(i);
+          const r = (R * level) / 100;
+          const x = cx + r * Math.cos(a);
+          const y = cy + r * Math.sin(a);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.closePath();
+        ctx.stroke();
+      });
+
+      points.forEach((_, i) => {
         const a = angleFor(i);
-        const r = (R * level) / 100;
-        return `${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`;
-      }).join(" ");
-      svg += `<polygon points="${pts}" fill="none" stroke="#DCD5C2" stroke-width="1" />`;
-    });
-    points.forEach((p, i) => {
-      const a = angleFor(i);
-      const x2 = cx + R * Math.cos(a);
-      const y2 = cy + R * Math.sin(a);
-      svg += `<line x1="${cx}" y1="${cy}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#DCD5C2" stroke-width="1" />`;
-      const lx = cx + (R + 20) * Math.cos(a);
-      const ly = cy + (R + 20) * Math.sin(a);
-      const cosA = Math.cos(a);
-      const anchor = Math.abs(cosA) < 0.15 ? "middle" : cosA > 0 ? "start" : "end";
-      svg += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="10" font-family="Arial, sans-serif" fill="${p.color}" font-weight="600" text-anchor="${anchor}" dominant-baseline="middle">${p.label} (${p.pct}%)</text>`;
-    });
-    const dataPts = points.map((p, i) => {
-      const a = angleFor(i);
-      const r = (R * p.pct) / 100;
-      return `${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`;
-    }).join(" ");
-    svg += `<polygon points="${dataPts}" fill="#C8A46555" stroke="#8A7A5E" stroke-width="1.5" />`;
-    points.forEach((p, i) => {
-      const a = angleFor(i);
-      const r = (R * p.pct) / 100;
-      svg += `<circle cx="${(cx + r * Math.cos(a)).toFixed(1)}" cy="${(cy + r * Math.sin(a)).toFixed(1)}" r="3.5" fill="${p.color}" />`;
-    });
-    svg += `</svg>`;
-    return svg;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + R * Math.cos(a), cy + R * Math.sin(a));
+        ctx.stroke();
+      });
+
+      ctx.beginPath();
+      points.forEach((p, i) => {
+        const a = angleFor(i);
+        const r = (R * p.pct) / 100;
+        const x = cx + r * Math.cos(a);
+        const y = cy + r * Math.sin(a);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      ctx.fillStyle = "rgba(200,164,101,0.35)";
+      ctx.fill();
+      ctx.strokeStyle = "#8A7A5E";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      points.forEach((p, i) => {
+        const a = angleFor(i);
+        const r = (R * p.pct) / 100;
+        const x = cx + r * Math.cos(a);
+        const y = cy + r * Math.sin(a);
+        ctx.beginPath();
+        ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+      });
+
+      ctx.font = "600 13px Arial, sans-serif";
+      ctx.textBaseline = "middle";
+      points.forEach((p, i) => {
+        const a = angleFor(i);
+        const lx = cx + (R + 20) * Math.cos(a);
+        const ly = cy + (R + 20) * Math.sin(a);
+        const cosA = Math.cos(a);
+        ctx.fillStyle = p.color;
+        ctx.textAlign = Math.abs(cosA) < 0.15 ? "center" : cosA > 0 ? "left" : "right";
+        ctx.fillText(`${p.label} (${p.pct}%)`, lx, ly);
+      });
+
+      return canvas.toDataURL("image/png");
+    } catch (err) {
+      console.error("Falha ao desenhar gráfico radar:", err);
+      return null;
+    }
   }
 
   function buildReportHTML(config, candidate, report) {
     const dimBlocks = config.buildReportSections(candidate).join("");
-    const radarHtml = config.buildRadarData
-      ? `<div style="text-align:center;margin-bottom:24px;">${buildRadarSVG(config.buildRadarData(candidate))}</div>`
-      : "";
+    let radarHtml = "";
+    if (config.buildRadarData) {
+      const points = config.buildRadarData(candidate);
+      const png = buildRadarPNG(points);
+      radarHtml = png
+        ? `<div style="text-align:center;margin-bottom:24px;"><img src="${png}" alt="Gráfico do perfil" style="max-width:100%;height:auto;" /></div>`
+        : `<div style="margin-bottom:24px;">${buildBarsHTML(points)}</div>`;
+    }
     return `<!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="UTF-8" />
 <title>Relatório ${config.title} — ${candidate.name}</title>
