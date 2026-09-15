@@ -227,4 +227,9 @@ const ENEAGRAMA_CONFIG = Object.assign({}, KG_CONFIG, {
   scoreAnswers: scoreEneagrama,
   generateReport: generateEneagramaReport,
   buildReportSections: buildEneagramaReportSections,
+  buildRadarData: (candidate) => EN_DIM_ORDER.map((d) => ({
+    label: EN_DIM_META[d].label,
+    pct: candidate.pct[d],
+    color: EN_DIM_META[d].printColor,
+  })),
 });

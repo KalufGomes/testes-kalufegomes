@@ -113,4 +113,9 @@ const DISC_CONFIG = Object.assign({}, KG_CONFIG, {
   scoreAnswers: scoreDisc,
   generateReport: generateDiscReport,
   buildReportSections: buildDiscReportSections,
+  buildRadarData: (candidate) => ["D", "I", "S", "C"].map((d) => ({
+    label: DIM_META[d].label,
+    pct: candidate.pct[d],
+    color: DIM_META[d].printColor,
+  })),
 });

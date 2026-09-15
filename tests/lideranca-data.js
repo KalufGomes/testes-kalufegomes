@@ -111,4 +111,9 @@ const LIDERANCA_CONFIG = Object.assign({}, KG_CONFIG, {
   scoreAnswers: scoreLideranca,
   generateReport: generateLiderancaReport,
   buildReportSections: buildLiderancaReportSections,
+  buildRadarData: (candidate) => ["E1", "E2", "E3", "E4"].map((k) => ({
+    label: STYLE_META[k].label,
+    pct: candidate.pct[k],
+    color: STYLE_META[k].printColor,
+  })),
 });

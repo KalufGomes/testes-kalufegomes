@@ -135,4 +135,9 @@ const IE_CONFIG = Object.assign({}, KG_CONFIG, {
   scoreAnswers: scoreIe,
   generateReport: generateIeReport,
   buildReportSections: buildIeReportSections,
+  buildRadarData: (candidate) => IE_DIM_ORDER.map((d) => ({
+    label: IE_DIM_META[d].label,
+    pct: candidate.pct[d],
+    color: IE_DIM_META[d].printColor,
+  })),
 });
